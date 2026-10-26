@@ -1232,7 +1232,7 @@ class UserPreferences extends ChangeNotifier {
 
   static final modernHomeRowsPadding = Preference<int>(
     key: 'pref_modern_home_rows_padding',
-    defaultValue: 420,
+    defaultValue: 360,
   );
 
   static final classicHomeRowsPadding = Preference<int>(

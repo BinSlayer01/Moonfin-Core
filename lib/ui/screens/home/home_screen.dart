@@ -100,6 +100,10 @@ const _kHomeStartThreshold = 20.0;
 /// Room for the title, subtitle and gaps that sit under classic card artwork.
 const _classicCardMetadataHeight = 50.0;
 
+/// Room above a row's title. Classic rows on mobile keep a wider gap.
+double _rowHeaderPaddingTop(bool isRowsV2) =>
+    isRowsV2 || !PlatformDetection.useMobileUi ? 6.0 : 16.0;
+
 /// How far a focused card grows past the top of its row. The scale is anchored
 /// at the bottom of the artwork, so all of the growth goes upward.
 double _focusHeadroom(double imageHeight, bool cardExpansion) =>
@@ -3182,7 +3186,7 @@ class _ContentRowsState extends State<_ContentRows>
     final hasSubtitle = subtitle != null &&
         (row.rowType != HomeRowType.liveTv &&
             row.rowType != HomeRowType.libraryTilesSmall);
-    final headerPaddingTop = isRowsV2 ? 6.0 : 16.0;
+    final headerPaddingTop = _rowHeaderPaddingTop(isRowsV2);
     final headerPaddingBottom = isRowsV2 ? 1.0 : 8.0;
     final titleHeight = 20.0 * metadataScale;
     final subtitleHeight = hasSubtitle ? (18.0 * metadataScale) : 0.0;
@@ -4301,9 +4305,15 @@ class _ContentRowsState extends State<_ContentRows>
 
   /// Extra room the classic rows setting asks for. Library rows are left out,
   /// since their grid sizes itself and padding there overlaps the next row.
+  /// TV and desktop count it from the slider's lowest step, so their rows sit
+  /// a little closer at every setting.
   double _classicRowPadding(HomeRow row, UserPreferences prefs) {
     if (_fullScreenRowsEnabled(prefs) || _isLibraryRow(row)) return 0.0;
-    return prefs.get(UserPreferences.classicHomeRowsPadding).toDouble();
+    final padding = prefs
+        .get(UserPreferences.classicHomeRowsPadding)
+        .toDouble();
+    if (PlatformDetection.useMobileUi) return padding;
+    return (padding - 10).clamp(0.0, double.infinity);
   }
 
   Widget _buildShiftedRow({
@@ -5833,7 +5843,7 @@ class _ContentRowsState extends State<_ContentRows>
           Padding(
             padding: EdgeInsets.fromLTRB(
               _kHomeRowLabelInset,
-              isRowsV2 ? 6 : 16,
+              _rowHeaderPaddingTop(isRowsV2),
               8,
               isRowsV2 ? 1 : 8,
             ),
