@@ -9838,13 +9838,11 @@ class DetailActionButtonsState extends State<DetailActionButtons> {
             // folder so the book plays through, starting at this file.
             final parentId = item.rawData['ParentId']?.toString();
             if (parentId != null && parentId.isNotEmpty) {
-              final siblingData = await client.itemsApi.getItems(
-                parentId: parentId,
-                includeItemTypes: const ['Audio', 'AudioBook'],
-                sortBy: 'ParentIndexNumber,IndexNumber,SortName',
+              final siblingsRaw = await audiobookSiblingsRaw(
+                client.itemsApi,
+                parentId,
                 fields: audioChildFields,
               );
-              final siblingsRaw = (siblingData['Items'] as List?) ?? const [];
               final siblings = _mapRawItemsForServer(
                 siblingsRaw.where(isAudioChild).toList(),
                 item.serverId,
@@ -10879,6 +10877,28 @@ List<AggregatedItem> queueWithAdditionalParts(
     ...parts,
     ...queue.skip(startIndex + 1),
   ];
+}
+
+/// The Audio and AudioBook items in an audiobook file's folder. A folder
+/// holding many books can outlast the request timeout, so a failed lookup
+/// returns nothing and the file plays on its own.
+@visibleForTesting
+Future<List<dynamic>> audiobookSiblingsRaw(
+  ItemsApi itemsApi,
+  String parentId, {
+  required String fields,
+}) async {
+  try {
+    final data = await itemsApi.getItems(
+      parentId: parentId,
+      includeItemTypes: const ['Audio', 'AudioBook'],
+      sortBy: 'ParentIndexNumber,IndexNumber,SortName',
+      fields: fields,
+    );
+    return (data['Items'] as List?) ?? const [];
+  } catch (_) {
+    return const [];
+  }
 }
 
 /// Where [startPosition] lands once [parts] follow the started item. A server
