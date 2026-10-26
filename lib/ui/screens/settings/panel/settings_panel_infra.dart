@@ -176,7 +176,7 @@ void _pushPersonalizationSync() {
 
 void _reloadHomeRows() {
   if (!GetIt.instance.isRegistered<HomeViewModel>()) return;
-  GetIt.instance<HomeViewModel>().load(preserveExisting: false);
+  GetIt.instance<HomeViewModel>().load(preserveExisting: true);
 }
 
 String _formatCamelCaseLabel(String camelCase) {

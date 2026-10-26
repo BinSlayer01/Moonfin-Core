@@ -2857,14 +2857,18 @@ class HomeViewModel extends ChangeNotifier {
     required bool exhausted,
   }) {
     final existingIds = row.items.map((item) => item.id).toSet();
-    final items = [
-      ...row.items,
-      ..._seerrAggregatedItems(
-        rawItems,
-        type,
-        GetIt.instance<SeerrPreferences>().blockNsfw,
-      ).where((item) => !existingIds.contains(item.id)),
-    ];
+    final items = _applyExternalRowSort(
+      [
+        ...row.items,
+        ..._seerrAggregatedItems(
+          rawItems,
+          type,
+          GetIt.instance<SeerrPreferences>().blockNsfw,
+        ).where((item) => !existingIds.contains(item.id)),
+      ],
+      _prefs.get(UserPreferences.seerrRowsSortBy),
+      _prefs.get(UserPreferences.seerrRowsSortOrder),
+    );
 
     _replaceRowById(
       row.copyWith(
@@ -3120,7 +3124,7 @@ class HomeViewModel extends ChangeNotifier {
           genreIds: item.genreIds,
           voteAverage: details.voteAverage ?? item.voteAverage,
           voteCount: item.voteCount,
-          popularity: item.popularity,
+          popularity: details.popularity ?? item.popularity,
           adult: item.adult,
           mediaInfo: item.mediaInfo,
           character: item.character,
@@ -3145,7 +3149,7 @@ class HomeViewModel extends ChangeNotifier {
         genreIds: item.genreIds,
         voteAverage: details.voteAverage ?? item.voteAverage,
         voteCount: item.voteCount,
-        popularity: item.popularity,
+        popularity: details.popularity ?? item.popularity,
         adult: item.adult,
         mediaInfo: item.mediaInfo,
         character: item.character,
