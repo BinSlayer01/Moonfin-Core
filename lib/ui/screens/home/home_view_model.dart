@@ -3147,20 +3147,7 @@ class HomeViewModel extends ChangeNotifier {
         return AggregatedItem(
           id: itemId,
           serverId: 'seerr',
-          rawData: {
-            'Name': item.title,
-            'Type': item.type,
-            'Overview': '',
-            'PosterPath': item.posterUrl ?? '',
-            'BackdropPath': item.backdropUrl ?? '',
-            'ProductionYear': item.year,
-            'SeerrMediaType': item.type == 'Series' ? 'tv' : 'movie',
-            'OfficialRating': item.officialRating,
-            'ProviderIds': {
-              if (item.imdbId.isNotEmpty) 'Imdb': item.imdbId,
-              if (item.tmdbId.isNotEmpty) 'Tmdb': item.tmdbId,
-            },
-          },
+          rawData: item.cardData,
         );
       }).toList();
 
@@ -3213,20 +3200,7 @@ class HomeViewModel extends ChangeNotifier {
         return AggregatedItem(
           id: itemId,
           serverId: 'seerr',
-          rawData: {
-            'Name': item.title,
-            'Type': item.type,
-            'Overview': '',
-            'PosterPath': item.posterUrl ?? '',
-            'BackdropPath': item.backdropUrl ?? '',
-            'ProductionYear': item.year,
-            'SeerrMediaType': item.type == 'Series' ? 'tv' : 'movie',
-            'OfficialRating': item.officialRating,
-            'ProviderIds': {
-              if (item.imdbId.isNotEmpty) 'Imdb': item.imdbId,
-              if (item.tmdbId.isNotEmpty) 'Tmdb': item.tmdbId,
-            },
-          },
+          rawData: item.cardData,
         );
       }).toList();
 
