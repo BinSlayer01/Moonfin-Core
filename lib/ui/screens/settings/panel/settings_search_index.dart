@@ -1067,6 +1067,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
     ],
     if (pluginAvailable) ...[
       imdbLists.screen(keywords: ['top 250', 'popular', 'charts']),
+      imdbLists.leaf('imdb_rows_sort_by', l10n.imdbRowsSorting),
+      imdbLists.leaf('imdb_rows_sort_order', l10n.sortOrder),
       imdbLists.leaf('imdb_top_250_movies_enabled', l10n.imdbTop250Movies),
       imdbLists.leaf('imdb_top_250_tv_shows_enabled', l10n.imdbTop250TvShows),
       imdbLists.leaf(
@@ -1087,6 +1089,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       ),
       if (tmdbAvailable) ...[
         tmdbLists.screen(keywords: ['popular', 'top rated', 'trending']),
+        tmdbLists.leaf('tmdb_rows_sort_by', l10n.tmdbRowsSorting),
+        tmdbLists.leaf('tmdb_rows_sort_order', l10n.sortOrder),
         tmdbLists.leaf('tmdb_popular_movies_enabled', 'Popular Movies'),
         tmdbLists.leaf('tmdb_top_rated_movies_enabled', 'Top Rated Movies'),
         tmdbLists.leaf('tmdb_now_playing_movies_enabled', 'Now Playing Movies'),
@@ -1160,6 +1164,8 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
           header: 'Sonarr',
         ),
         seerrLists.screen(keywords: ['discovery rows', 'watchlist', 'trending']),
+        seerrLists.leaf('seerr_rows_sort_by', l10n.seerrRowsSorting),
+        seerrLists.leaf('seerr_rows_sort_order', l10n.sortOrder),
       ],
       customRows.screen(keywords: ['letterboxd', 'mdblist', 'tmdb', 'custom']),
     ],

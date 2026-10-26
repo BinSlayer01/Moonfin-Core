@@ -437,6 +437,8 @@ class UserPreferences extends ChangeNotifier {
     'pref_favorites_view_style',
     'pref_group_items_into_collections',
     'pref_home_row_info_overlay',
+    'pref_imdb_rows_sort_by',
+    'pref_imdb_rows_sort_order',
     'pref_interface_style',
     'pref_live_direct',
     'pref_max_bitrate',
@@ -462,10 +464,14 @@ class UserPreferences extends ChangeNotifier {
     'pref_screensaver_require_rating',
     'pref_screensaver_size',
     'pref_screensaver_timeout',
+    'pref_seerr_rows_sort_by',
+    'pref_seerr_rows_sort_order',
     'pref_studios_row_selected_ids',
     'pref_studios_row_sort_by',
     'pref_studios_row_sort_order',
     'pref_syncplay_enabled',
+    'pref_tmdb_rows_sort_by',
+    'pref_tmdb_rows_sort_order',
     'showChapterMarkers',
     'showDescriptionOnPause',
     'since_you_watched_1_enabled',
@@ -1497,6 +1503,42 @@ class UserPreferences extends ChangeNotifier {
   static final studiosRowSelectedIds = Preference<String>(
     key: 'pref_studios_row_selected_ids',
     defaultValue: '',
+  );
+
+  static final imdbRowsSortBy = EnumPreference(
+    key: 'pref_imdb_rows_sort_by',
+    defaultValue: ExternalRowSortBy.none,
+    values: ExternalRowSortBy.values,
+  );
+
+  static final imdbRowsSortOrder = EnumPreference(
+    key: 'pref_imdb_rows_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
+  );
+
+  static final tmdbRowsSortBy = EnumPreference(
+    key: 'pref_tmdb_rows_sort_by',
+    defaultValue: ExternalRowSortBy.none,
+    values: ExternalRowSortBy.values,
+  );
+
+  static final tmdbRowsSortOrder = EnumPreference(
+    key: 'pref_tmdb_rows_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
+  );
+
+  static final seerrRowsSortBy = EnumPreference(
+    key: 'pref_seerr_rows_sort_by',
+    defaultValue: ExternalRowSortBy.none,
+    values: ExternalRowSortBy.values,
+  );
+
+  static final seerrRowsSortOrder = EnumPreference(
+    key: 'pref_seerr_rows_sort_order',
+    defaultValue: SortDirection.ascending,
+    values: SortDirection.values,
   );
 
   static final genresRowItemFilter = EnumPreference(
