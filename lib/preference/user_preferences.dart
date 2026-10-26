@@ -51,6 +51,11 @@ class UserPreferences extends ChangeNotifier {
   static const seasonalPetals = 'petals';
   static const seasonalFireflies = 'fireflies';
   static const seasonalHalloween = 'halloween';
+  static const seasonalValentines = 'valentines';
+  static const seasonalEaster = 'easter';
+  static const seasonalPride = 'pride';
+  static const seasonalLunar = 'lunar';
+  static const seasonalDiwali = 'diwali';
   static const seasonalSurpriseValues = <String>{
     seasonalNone,
     seasonalSnow,
@@ -61,6 +66,11 @@ class UserPreferences extends ChangeNotifier {
     seasonalPetals,
     seasonalFireflies,
     seasonalHalloween,
+    seasonalValentines,
+    seasonalEaster,
+    seasonalPride,
+    seasonalLunar,
+    seasonalDiwali,
   };
 
   // The original Android TV client and older Smart-TV builds sync these names.
