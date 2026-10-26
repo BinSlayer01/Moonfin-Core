@@ -2856,19 +2856,35 @@ class HomeViewModel extends ChangeNotifier {
     SeerrRowType? type, {
     required bool exhausted,
   }) {
-    final existingIds = row.items.map((item) => item.id).toSet();
-    final items = _applyExternalRowSort(
-      [
+    final existingKeys = row.items
+        .map((item) => '${item.rawData['SeerrMediaType'] ?? ''}:${item.id}')
+        .toSet();
+    final newItems = _seerrAggregatedItems(
+      rawItems,
+      type,
+      GetIt.instance<SeerrPreferences>().blockNsfw,
+    ).where(
+      (item) => !existingKeys.contains(
+        '${item.rawData['SeerrMediaType'] ?? ''}:${item.id}',
+      ),
+    ).toList();
+
+    final sortBy = _prefs.get(UserPreferences.seerrRowsSortBy);
+    final sortOrder = _prefs.get(UserPreferences.seerrRowsSortOrder);
+
+    final List<AggregatedItem> items;
+    if (sortBy == ExternalRowSortBy.shuffle) {
+      items = [
         ...row.items,
-        ..._seerrAggregatedItems(
-          rawItems,
-          type,
-          GetIt.instance<SeerrPreferences>().blockNsfw,
-        ).where((item) => !existingIds.contains(item.id)),
-      ],
-      _prefs.get(UserPreferences.seerrRowsSortBy),
-      _prefs.get(UserPreferences.seerrRowsSortOrder),
-    );
+        ..._applyExternalRowSort(newItems, sortBy, sortOrder),
+      ];
+    } else {
+      items = _applyExternalRowSort(
+        [...row.items, ...newItems],
+        sortBy,
+        sortOrder,
+      );
+    }
 
     _replaceRowById(
       row.copyWith(
