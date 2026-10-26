@@ -951,9 +951,10 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       keywords: ['spoiler', 'description', 'overview'],
     ),
     home.leaf(
-      'episodePreviewEnabled',
+      'mediaPreviewMode',
       l10n.mediaPreview,
       subtitle: l10n.mediaPreviewDescription,
+      keywords: ['trailer'],
     ),
     home.leaf(
       'previewAudioEnabled',

@@ -1637,6 +1637,9 @@ class PluginSyncService extends ChangeNotifier {
       }
     }
 
+    // A profile written by an app that only knows the preview switch can
+    // carry a mode that disagrees with it.
+    await _prefs.reconcileMediaPreviewMode();
     _prefs.notifyPreferenceChanged();
 
     final currentNavbarPos = _prefs.get(UserPreferences.navbarPosition);

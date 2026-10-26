@@ -182,6 +182,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('trailerVolume', UserPreferences.trailerVolume, SyncCodec.integer),
   SyncedField('mediaBarTrailerCaptions', UserPreferences.mediaBarTrailerCaptions, SyncCodec.boolean),
   SyncedField('episodePreviewEnabled', UserPreferences.episodePreviewEnabled, SyncCodec.boolean),
+  SyncedField('mediaPreviewMode', UserPreferences.mediaPreviewMode, SyncCodec.text),
   SyncedField('previewAudioEnabled', UserPreferences.previewAudioEnabled, SyncCodec.boolean),
   SyncedField('previewVolume', UserPreferences.previewVolume, SyncCodec.integer),
   SyncedField('mediaBarLibraryIds', UserPreferences.mediaBarLibraryIds, SyncCodec.csvList),

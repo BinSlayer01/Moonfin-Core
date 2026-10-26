@@ -160,6 +160,7 @@ void main() {
     'mediaBarTrailerAudio',
     'mediaBarTrailerCaptions',
     'mediaBarTrailerPreview',
+    'mediaPreviewMode',
     'mediaQueuingEnabled',
     'mediaSegmentActions',
     'mediaSegmentAutoHide',

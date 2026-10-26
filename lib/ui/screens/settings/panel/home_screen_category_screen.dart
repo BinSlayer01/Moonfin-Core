@@ -18,6 +18,7 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(_prefs.reconcileMediaPreviewMode());
     // The calendars come from Seerr's Radarr and Sonarr servers, so there is
     // nothing to ask when Seerr isn't set up.
     if (GetIt.instance<PluginSyncService>().seerrAvailable) {
@@ -46,6 +47,16 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
         });
       }
     }
+  }
+
+  // Older apps only read the switch, so it follows the mode.
+  Future<void> _onMediaPreviewModeChanged() async {
+    await _prefs.set(
+      UserPreferences.episodePreviewEnabled,
+      _prefs.get(UserPreferences.mediaPreviewMode) !=
+          UserPreferences.mediaPreviewOff,
+    );
+    _pushPersonalizationSync();
   }
 
   String _mediaTypeBadgeBehaviorLabel(
@@ -342,12 +353,17 @@ class _HomeScreenCategoryScreenState extends State<_HomeScreenCategoryScreen> {
                 icon: Icons.description_outlined,
                 onChanged: _pushPersonalizationSync,
               ),
-              SwitchPreferenceTile(
-                preference: UserPreferences.episodePreviewEnabled,
+              StringPickerPreferenceTile(
+                preference: UserPreferences.mediaPreviewMode,
                 title: l10n.mediaPreview,
-                subtitle: l10n.mediaPreviewDescription,
+                description: l10n.mediaPreviewDescription,
                 icon: Icons.ondemand_video,
-                onChanged: _pushPersonalizationSync,
+                options: {
+                  UserPreferences.mediaPreviewOff: l10n.off,
+                  UserPreferences.mediaPreviewMedia: l10n.mediaPreview,
+                  UserPreferences.mediaPreviewTrailer: l10n.trailerPreview,
+                },
+                onChanged: _onMediaPreviewModeChanged,
               ),
               SwitchPreferenceTile(
                 preference: UserPreferences.previewAudioEnabled,

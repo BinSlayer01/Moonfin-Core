@@ -1253,17 +1253,18 @@ class _MediaBarState extends State<MediaBar>
         await player.setVolume(0);
         if (!mounted || resolveId != _trailerResolveId) return;
 
-        final media = localHeaders.isNotEmpty
-            ? Media(streamUrl, httpHeaders: localHeaders)
-            : Media(streamUrl);
         await YouTubeStreamResolver.preferAudioLanguage(
           player,
           youTubeAudioLanguage,
         );
-        await YouTubeStreamResolver.capPreviewBitrate(
+        final media = await YouTubeStreamResolver.previewMedia(
           player,
+          streamUrl,
           youTube: useYouTubeHeaders,
+          headers: localHeaders,
+          audioLanguage: youTubeAudioLanguage,
         );
+        if (!mounted || resolveId != _trailerResolveId) return;
         await applyMpvClientCertificate(player, streamUrl);
         await player.open(media).timeout(_openTimeout);
         if (resolveId != _trailerResolveId || !_trailerShouldBeActive()) {

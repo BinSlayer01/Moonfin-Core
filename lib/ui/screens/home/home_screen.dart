@@ -24,6 +24,7 @@ import '../../../data/models/aggregated_item.dart';
 import '../../../data/models/home_row.dart';
 import '../../../data/repositories/mdblist_repository.dart';
 import '../../../data/repositories/seerr_repository.dart';
+import '../../../data/repositories/tmdb_repository.dart';
 import '../../widgets/seerr/seerr_shortcuts.dart';
 import '../../../data/services/background_service.dart';
 import '../../widgets/modern_row.dart';
@@ -31,6 +32,7 @@ import '../../../data/services/theme_music_service.dart';
 import '../../../data/services/media_server_client_factory.dart';
 import '../../../data/services/plugin_sync_service.dart';
 import '../../../data/services/user_data_sync.dart';
+import '../../../data/services/youtube_stream_resolver.dart';
 import '../../../data/services/connectivity_service.dart';
 import '../../../data/services/log_service.dart';
 import '../../../data/utils/media_type_badges.dart';
@@ -821,6 +823,8 @@ class _ContentRowsState extends State<_ContentRows>
   VideoController? _previewController;
   AppleTvPreviewPlayer? _appleTvPreviewPlayer;
   StreamSubscription<void>? _appleTvPreviewCompletedSub;
+  StreamSubscription<bool>? _previewCompletedSub;
+  String? _endedPreviewKey;
   MediaServerClient? _previewEncodingClient;
   String? _previewPlaySessionId;
   int _previewRequestId = 0;
@@ -1572,12 +1576,56 @@ class _ContentRowsState extends State<_ContentRows>
     return isTopNavbarFocus || isLeftSidebarFocus;
   }
 
-  static bool _supportsEpisodePreview(AggregatedItem item) {
+  static bool _supportsPreview(AggregatedItem item, String mode) {
+    // An outside title has nothing on the server, only its trailer, so it
+    // plays that whichever kind of preview is on.
+    if (item.serverId == 'seerr') {
+      return !kIsWeb &&
+          GetIt.instance<PluginSyncService>().tmdbDetailsAvailable &&
+          _outsideTrailerTitle(item) != null;
+    }
+    if (mode == UserPreferences.mediaPreviewTrailer) {
+      return _trailerOwnerId(item) != null;
+    }
     return item.type == 'Series' ||
         item.type == 'Movie' ||
         item.type == 'Episode' ||
         item.type == 'Video' ||
         item.type == 'MusicVideo';
+  }
+
+  /// Whose trailer a card plays. Episodes and seasons have none of their own,
+  /// so they play their series'.
+  static String? _trailerOwnerId(AggregatedItem item) {
+    final id = switch (item.type) {
+      'Movie' || 'Series' => item.id,
+      'Episode' || 'Season' => item.rawData['SeriesId']?.toString(),
+      _ => null,
+    };
+    return id == null || id.isEmpty ? null : id;
+  }
+
+  /// What an outside card's trailer is looked up by. Null for cards that
+  /// aren't one movie or show, like genre tiles, shortcuts and calendar days.
+  static ({String type, String? tmdbId, String? imdbId})? _outsideTrailerTitle(
+    AggregatedItem item,
+  ) {
+    final raw = item.rawData;
+    if (raw.containsKey('SeerrShortcut') ||
+        raw.containsKey('FilterType') ||
+        raw.containsKey('CalendarDate')) {
+      return null;
+    }
+    final type = switch (item.type) {
+      'Movie' => 'movie',
+      'Series' => 'tv',
+      _ => null,
+    };
+    final tmdbId =
+        item.tmdbId ?? (int.tryParse(item.id) != null ? item.id : null);
+    final imdbId = item.imdbId;
+    if (type == null || (tmdbId == null && imdbId == null)) return null;
+    return (type: type, tmdbId: tmdbId, imdbId: imdbId);
   }
 
   static String _previewKeyFor(AggregatedItem item, [int? rowIndex]) {
@@ -1612,9 +1660,12 @@ class _ContentRowsState extends State<_ContentRows>
     int? rowIndex,
   }) {
     final previewKey = _previewKeyFor(item, rowIndex);
-    if (_activePreviewKey == previewKey || _pendingPreviewKey == previewKey) {
+    if (_activePreviewKey == previewKey ||
+        _pendingPreviewKey == previewKey ||
+        _endedPreviewKey == previewKey) {
       return;
     }
+    _endedPreviewKey = null;
 
     _previewDelayTimer?.cancel();
     _previewDelayTimer = null;
@@ -1625,8 +1676,9 @@ class _ContentRowsState extends State<_ContentRows>
     // Chrome focus is checked when the delay runs out, not here. A row reports
     // its new focus before the chrome state catches up, so the first card
     // entered from the toolbar would still see the toolbar's state.
-    if (!widget.prefs.get(UserPreferences.episodePreviewEnabled) ||
-        !_supportsEpisodePreview(item) ||
+    final previewMode = widget.prefs.resolveMediaPreviewMode();
+    if (previewMode == UserPreferences.mediaPreviewOff ||
+        !_supportsPreview(item, previewMode) ||
         _mainPlaybackActive) {
       return;
     }
@@ -1657,12 +1709,21 @@ class _ContentRowsState extends State<_ContentRows>
 
   void _stopPreviewFor(AggregatedItem item, [int? rowIndex]) {
     final previewKey = _previewKeyFor(item, rowIndex);
+    if (_endedPreviewKey == previewKey) _endedPreviewKey = null;
     _previewDelayTimer?.cancel();
     _previewDelayTimer = null;
     if ((_activePreviewKey == previewKey || _pendingPreviewKey == previewKey) &&
         mounted) {
       _finishSharedPreview();
     }
+  }
+
+  // A preview that ran its course leaves its card on the artwork. Swapping the
+  // video out under a resting mouse reads as a fresh hover, so the card would
+  // otherwise start it again.
+  void _onPreviewCompleted() {
+    _endedPreviewKey = _activePreviewKey;
+    _finishSharedPreview();
   }
 
   void _finishSharedPreview({
@@ -1689,6 +1750,8 @@ class _ContentRowsState extends State<_ContentRows>
       appleTvReleased = _releaseAppleTvPreviewPlayer();
     }
     if (releaseResources || kIsWeb) {
+      _previewCompletedSub?.cancel();
+      _previewCompletedSub = null;
       _previewPlayer?.dispose();
       _previewPlayer = null;
       _previewController = null;
@@ -1755,6 +1818,8 @@ class _ContentRowsState extends State<_ContentRows>
 
     _previewStopTimer?.cancel();
     if (kIsWeb) {
+      _previewCompletedSub?.cancel();
+      _previewCompletedSub = null;
       _previewPlayer?.dispose();
       _previewPlayer = null;
       _previewController = null;
@@ -1773,35 +1838,38 @@ class _ContentRowsState extends State<_ContentRows>
     _themeMusicService.setExternalAudioActive(true);
 
     try {
-      final client = _clientForItem(item);
-      if (client == null) {
+      final outsideTitle = item.serverId == 'seerr'
+          ? _outsideTrailerTitle(item)
+          : null;
+      final client = outsideTitle == null ? _clientForItem(item) : null;
+      if (outsideTitle == null && client == null) {
         _finishSharedPreview();
         return;
       }
-      final target = await _resolvePreviewTargetItem(client, item);
-      if (!_isPreviewRequestActive(requestId, null) || target == null) {
+      final playSessionId = '${DateTime.now().microsecondsSinceEpoch}';
+      final source = outsideTitle != null
+          ? await _resolveOutsideTrailer(outsideTitle)
+          : widget.prefs.resolveMediaPreviewMode() ==
+                UserPreferences.mediaPreviewTrailer
+          ? await _resolvePreviewTrailer(client!, item, playSessionId)
+          : await _resolvePreviewClip(client!, item, playSessionId);
+      if (!_isPreviewRequestActive(requestId, null) || source == null) {
         return;
       }
-
-      final seekPosition = _previewSeekPosition(target);
-      final playSessionId = '${DateTime.now().microsecondsSinceEpoch}';
-      final previewUrl = _buildPreviewUrl(
-        client,
-        target,
-        seekPosition,
-        playSessionId,
-      );
-      final previewUri = Uri.tryParse(previewUrl);
+      final previewUri = Uri.tryParse(source.url);
       if (previewUri == null ||
           !previewUri.hasScheme ||
           previewUri.host.isEmpty) {
         _finishSharedPreview();
         return;
       }
-      // Remembered so every finish path can tell the server to stop this
-      // transcode instead of leaving the job to the idle reaper.
-      _previewEncodingClient = client;
-      _previewPlaySessionId = playSessionId;
+      final previewUrl = source.url;
+      if (!source.youTube) {
+        // Remembered so every finish path can tell the server to stop this
+        // transcode instead of leaving the job to the idle reaper.
+        _previewEncodingClient = client;
+        _previewPlaySessionId = playSessionId;
+      }
 
       final previewAudioEnabled = widget.prefs.get(
         UserPreferences.previewAudioEnabled,
@@ -1815,11 +1883,7 @@ class _ContentRowsState extends State<_ContentRows>
           : PlatformDetection.useApplePreviewPlayer
           ? 'AVPlayer'
           : 'media_kit';
-      final sourceProtocol = target.mediaSources.firstOrNull?['Protocol'];
-      _logPreview(
-        'item ${target.id}, ${sourceProtocol ?? 'unknown'} source, start at '
-        '${seekPosition.inSeconds}s on $backend, $previewUrl',
-      );
+      _logPreview('${source.label} on $backend, $previewUrl');
       await _audioArbiter.acquire(AudioProducer.inlinePreview);
 
       if (!_isPreviewRequestActive(requestId, previewKey)) {
@@ -1843,6 +1907,8 @@ class _ContentRowsState extends State<_ContentRows>
               'url': previewUrl,
               'mediaType': 'video',
               'preview': true,
+              if (source.youTube)
+                'headers': YouTubeStreamResolver.youtubeHeaders,
             })
             .timeout(_previewOpenTimeout);
         if (!_isPreviewRequestActive(requestId, previewKey)) {
@@ -1854,7 +1920,15 @@ class _ContentRowsState extends State<_ContentRows>
         _previewUsingAppleTv = true;
         final player = _ensureAppleTvSharedPreviewPlayer();
         await player
-            .open(previewUrl, volume: previewVolume, startPosition: seekPosition)
+            .open(
+              previewUrl,
+              headers: source.youTube
+                  ? YouTubeStreamResolver.youtubeHeaders
+                  : null,
+              volume: previewVolume,
+              startPosition: source.start,
+              audioLanguage: source.audioLanguage,
+            )
             .timeout(_previewOpenTimeout);
         if (!_isPreviewRequestActive(requestId, previewKey)) {
           await player.stop();
@@ -1873,8 +1947,19 @@ class _ContentRowsState extends State<_ContentRows>
           return;
         }
 
+        // Cards are small, so a YouTube trailer gets a 720p variant.
+        final media = await YouTubeStreamResolver.previewMedia(
+          player,
+          previewUrl,
+          youTube: source.youTube,
+          maxHeight: 720,
+          audioLanguage: source.audioLanguage,
+        );
+        if (!_isPreviewRequestActive(requestId, previewKey)) {
+          return;
+        }
         await applyMpvClientCertificate(player, previewUrl);
-        await player.open(Media(previewUrl)).timeout(_previewOpenTimeout);
+        await player.open(media).timeout(_previewOpenTimeout);
         if (!_isPreviewRequestActive(requestId, previewKey)) {
           await player.stop();
           return;
@@ -1888,18 +1973,39 @@ class _ContentRowsState extends State<_ContentRows>
           }
         }
 
-        await player.setPlaylistMode(PlaylistMode.loop);
+        // A trailer plays once to its end, a clip loops until its time is up.
+        await player.setPlaylistMode(
+          source.trailer ? PlaylistMode.none : PlaylistMode.loop,
+        );
         if (!_isPreviewRequestActive(requestId, previewKey)) {
           await player.stop();
           return;
         }
-      }
-      _previewStopTimer = Timer(const Duration(seconds: 30), () {
-        if (requestId == _previewRequestId && _activePreviewKey == previewKey) {
-          _logPreview('stopping at the 30 second limit');
-          _finishSharedPreview();
+
+        // mpv reports a YouTube stream as playing a few seconds before any of
+        // it arrives, so the card waits for it to move rather than go black.
+        if (source.youTube) {
+          final started = await player.stream.position
+              .firstWhere((position) => position > Duration.zero)
+              .timeout(_previewOpenTimeout)
+              .then((_) => true, onError: (_) => false);
+          if (!_isPreviewRequestActive(requestId, previewKey)) return;
+          if (!started) {
+            _logPreview('trailer never started');
+            _finishSharedPreview();
+            return;
+          }
         }
-      });
+      }
+      if (!source.trailer) {
+        _previewStopTimer = Timer(const Duration(seconds: 30), () {
+          if (requestId == _previewRequestId &&
+              _activePreviewKey == previewKey) {
+            _logPreview('stopping at the 30 second limit');
+            _onPreviewCompleted();
+          }
+        });
+      }
 
       if (_isPreviewRequestActive(requestId, previewKey)) {
         _previewReady = true;
@@ -1929,7 +2035,7 @@ class _ContentRowsState extends State<_ContentRows>
     _appleTvPreviewPlayer = player;
     _appleTvPreviewCompletedSub = player.completedStream.listen((_) {
       if (_previewUsingAppleTv) {
-        _finishSharedPreview();
+        _onPreviewCompleted();
       }
     });
     return player;
@@ -1952,6 +2058,10 @@ class _ContentRowsState extends State<_ContentRows>
       } catch (_) {}
     }
     _previewPlayer = player;
+    // Clips loop, so only a trailer reaching its end gets here.
+    _previewCompletedSub = player.stream.completed.listen((completed) {
+      if (completed && _activePreviewKey != null) _onPreviewCompleted();
+    });
     _previewController = VideoController(
       player,
       configuration: VideoControllerConfiguration(
@@ -1975,6 +2085,106 @@ class _ContentRowsState extends State<_ContentRows>
       return 'auto-safe';
     }
     return null;
+  }
+
+  /// The clip a card plays in media preview, from partway into the title.
+  Future<_PreviewSource?> _resolvePreviewClip(
+    MediaServerClient client,
+    AggregatedItem item,
+    String playSessionId,
+  ) async {
+    final target = await _resolvePreviewTargetItem(client, item);
+    if (target == null) return null;
+    final seekPosition = _previewSeekPosition(target);
+    final protocol = target.mediaSources.firstOrNull?['Protocol'];
+    return (
+      url: _buildPreviewUrl(client, target, seekPosition, playSessionId),
+      start: seekPosition,
+      youTube: false,
+      trailer: false,
+      audioLanguage: null,
+      label:
+          'item ${target.id}, ${protocol ?? 'unknown'} source, start at '
+          '${seekPosition.inSeconds}s',
+    );
+  }
+
+  /// The trailer a card plays in trailer preview: a local one through the
+  /// server's preview stream, otherwise the first YouTube one. The browser
+  /// can't read YouTube's streams, so it only plays local trailers.
+  Future<_PreviewSource?> _resolvePreviewTrailer(
+    MediaServerClient client,
+    AggregatedItem item,
+    String playSessionId,
+  ) async {
+    final ownerId = _trailerOwnerId(item);
+    if (ownerId == null) return null;
+
+    try {
+      final local = (await client.itemsApi.getLocalTrailers(ownerId))
+          .firstOrNull;
+      final localId = local?['Id']?.toString();
+      if (local != null && localId != null && localId.isNotEmpty) {
+        final trailer = AggregatedItem(
+          id: localId,
+          serverId: item.serverId,
+          rawData: local,
+        );
+        return (
+          url: _buildPreviewUrl(client, trailer, Duration.zero, playSessionId),
+          start: Duration.zero,
+          youTube: false,
+          trailer: true,
+          audioLanguage: null,
+          label: 'local trailer $localId for $ownerId',
+        );
+      }
+    } catch (_) {}
+    if (kIsWeb) return null;
+
+    var remote = ownerId == item.id ? item.rawData['RemoteTrailers'] : null;
+    if (remote is! List || remote.isEmpty) {
+      remote = (await client.itemsApi.getItem(ownerId))['RemoteTrailers'];
+    }
+    if (remote is! List) return null;
+    for (final trailer in remote.whereType<Map>()) {
+      final url = trailer['Url']?.toString();
+      if (url == null) continue;
+      final source = await _youTubeTrailerSource(url, ownerId);
+      if (source != null) return source;
+    }
+    return null;
+  }
+
+  /// An outside title's trailer, as Moonbase finds it on TMDB.
+  Future<_PreviewSource?> _resolveOutsideTrailer(
+    ({String type, String? tmdbId, String? imdbId}) title,
+  ) async {
+    final details = await GetIt.instance<TmdbRepository>().titleDetails(
+      type: title.type,
+      tmdbId: title.tmdbId,
+      imdbId: title.imdbId,
+    );
+    final url = details?['trailerUrl'] as String?;
+    if (url == null) return null;
+    return _youTubeTrailerSource(url, title.tmdbId ?? title.imdbId ?? '');
+  }
+
+  Future<_PreviewSource?> _youTubeTrailerSource(
+    String url,
+    String owner,
+  ) async {
+    if (YouTubeStreamResolver.extractVideoId(url) == null) return null;
+    final stream = await YouTubeStreamResolver.resolveFromUrl(url);
+    if (stream == null) return null;
+    return (
+      url: stream.url,
+      start: Duration.zero,
+      youTube: true,
+      trailer: true,
+      audioLanguage: stream.audioLanguage,
+      label: 'YouTube trailer $url for $owner',
+    );
   }
 
   Future<AggregatedItem?> _resolvePreviewTargetItem(
@@ -5127,7 +5337,10 @@ class _ContentRowsState extends State<_ContentRows>
           unawaited(
             _revealAndScrollToPinnedInfo(ignoreScrollCooldown: forceReveal),
           );
-          final canPreview = _supportsEpisodePreview(item);
+          final canPreview = _supportsPreview(
+            item,
+            widget.prefs.resolveMediaPreviewMode(),
+          );
           if (!PlatformDetection.useMobileUi && canPreview) {
             _schedulePreview(item, delay: _previewStartDelay, rowIndex: rowIndex);
           } else {
@@ -5245,7 +5458,10 @@ class _ContentRowsState extends State<_ContentRows>
             imageUrl = image.url;
           }
 
-          final canPreview = _supportsEpisodePreview(item);
+          final canPreview = _supportsPreview(
+            item,
+            widget.prefs.resolveMediaPreviewMode(),
+          );
 
           return ValueListenableBuilder<String?>(
             valueListenable: _activePreviewKeyNotifier,
@@ -6705,3 +6921,15 @@ class _PreviewCardShell extends StatelessWidget {
     );
   }
 }
+
+/// Where a card's preview comes from. A YouTube trailer isn't a server
+/// transcode, so it has no encoding to stop and needs YouTube's headers, and a
+/// trailer of either kind plays to its end where a clip stops at 30 seconds.
+typedef _PreviewSource = ({
+  String url,
+  Duration start,
+  bool youTube,
+  bool trailer,
+  String? audioLanguage,
+  String label,
+});
