@@ -15775,5 +15775,13 @@
     "addServerUseDifferentAddress": "Käytä toista osoitetta",
     "@addServerUseDifferentAddress": {
         "description": "Add Server dialog: goes back to the address field instead of keeping the server that was found"
+    },
+    "peekHomeRows": "Peek Kotirivit",
+    "@peekHomeRows": {
+        "description": "Title of the media bar setting that lets the first home row show over the bottom of the media bar"
+    },
+    "peekHomeRowsDescription": "Näytä ensimmäisen rivin yläpuoli mediapalkin alareunassa",
+    "@peekHomeRowsDescription": {
+        "description": "Description of the Peek Home Rows media bar setting"
     }
 }
