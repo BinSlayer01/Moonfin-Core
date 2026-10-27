@@ -795,7 +795,7 @@ class NouveauDetailContentState extends State<NouveauDetailContent> {
         NouveauSpacing.mobileHorizontalInset + safePadding.left,
         safePadding.top + 80,
         NouveauSpacing.mobileHorizontalInset + safePadding.right,
-        20,
+        8,
       );
     }
 
