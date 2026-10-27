@@ -15783,5 +15783,25 @@
     "peekHomeRowsDescription": "Näytä ensimmäisen rivin yläpuoli mediapalkin alareunassa",
     "@peekHomeRowsDescription": {
         "description": "Description of the Peek Home Rows media bar setting"
+    },
+    "homeScreenBackdropFullScreen": "Koko näyttö",
+    "@homeScreenBackdropFullScreen": {
+        "description": "Home Screen Backdrop option that fills the whole screen with the focused item's backdrop"
+    },
+    "homeScreenBackdropCorner": "Kulma",
+    "@homeScreenBackdropCorner": {
+        "description": "Home Screen Backdrop option that shows the focused item's backdrop in the top right corner, fading into the background like the Google TV home screen"
+    },
+    "detailsBackdropSize": "Taustakuvan koko",
+    "@detailsBackdropSize": {
+        "description": "Setting on phones for how big the backdrop image behind the item details screen is drawn"
+    },
+    "detailsBackdropFullScreen": "Koko näyttö",
+    "@detailsBackdropFullScreen": {
+        "description": "Backdrop Size option that zooms the backdrop to fill the whole details screen"
+    },
+    "detailsBackdropFit": "Sovita",
+    "@detailsBackdropFit": {
+        "description": "Backdrop Size option that shows the whole backdrop across the top of the details screen, fading into the page below it"
     }
 }
