@@ -2570,10 +2570,14 @@ class HomeViewModel extends ChangeNotifier {
       if (slider == null || !slider.isSupported) return const [];
 
       final page = await repo.getSliderPage(slider);
-      final items = _seerrAggregatedItems(
-        page.results,
-        null,
-        GetIt.instance<SeerrPreferences>().blockNsfw,
+      final items = applyExternalRowSort(
+        _seerrAggregatedItems(
+          page.results,
+          null,
+          GetIt.instance<SeerrPreferences>().blockNsfw,
+        ),
+        _prefs.get(UserPreferences.seerrRowsSortBy),
+        _prefs.get(UserPreferences.seerrRowsSortOrder),
       );
       _seerrRowPages[cfg.stableId] = 1;
       _seerrSliderRows[cfg.stableId] = slider;
@@ -2634,61 +2638,97 @@ class HomeViewModel extends ChangeNotifier {
 
       if (type == SeerrRowType.movieGenres) {
         final genres = await repo.getGenreSliderMovies();
+        final items = [
+          for (final g in genres)
+            _seerrFilterItem(
+              id: g.id.toString(),
+              name: g.name,
+              imagePath: seerrGenreBackdropUrl(g.id, g.backdrops) ?? '',
+              type: 'Genre',
+              mediaType: 'movie',
+              filterType: 'genre',
+            ),
+        ];
         return [
-          _seerrRow(rowId, title, [
-            for (final g in genres)
-              _seerrFilterItem(
-                id: g.id.toString(),
-                name: g.name,
-                imagePath: seerrGenreBackdropUrl(g.id, g.backdrops) ?? '',
-                type: 'Genre',
-                mediaType: 'movie',
-                filterType: 'genre',
-              ),
-          ]),
+          _seerrRow(
+            rowId,
+            title,
+            applyExternalRowSort(
+              items,
+              _prefs.get(UserPreferences.seerrRowsSortBy),
+              _prefs.get(UserPreferences.seerrRowsSortOrder),
+            ),
+          ),
         ];
       } else if (type == SeerrRowType.seriesGenres) {
         final genres = await repo.getGenreSliderTv();
+        final items = [
+          for (final g in genres)
+            _seerrFilterItem(
+              id: g.id.toString(),
+              name: g.name,
+              imagePath: seerrGenreBackdropUrl(g.id, g.backdrops) ?? '',
+              type: 'Genre',
+              mediaType: 'tv',
+              filterType: 'genre',
+            ),
+        ];
         return [
-          _seerrRow(rowId, title, [
-            for (final g in genres)
-              _seerrFilterItem(
-                id: g.id.toString(),
-                name: g.name,
-                imagePath: seerrGenreBackdropUrl(g.id, g.backdrops) ?? '',
-                type: 'Genre',
-                mediaType: 'tv',
-                filterType: 'genre',
-              ),
-          ]),
+          _seerrRow(
+            rowId,
+            title,
+            applyExternalRowSort(
+              items,
+              _prefs.get(UserPreferences.seerrRowsSortBy),
+              _prefs.get(UserPreferences.seerrRowsSortOrder),
+            ),
+          ),
         ];
       } else if (type == SeerrRowType.networks) {
+        final items = [
+          for (final n in SeerrDiscoverViewModel.popularNetworks)
+            _seerrFilterItem(
+              id: n.id.toString(),
+              name: n.name,
+              imagePath: n.logoPath ?? '',
+              type: 'Network',
+              mediaType: 'tv',
+              filterType: 'network',
+            ),
+        ];
         return [
-          _seerrRow(rowId, title, [
-            for (final n in SeerrDiscoverViewModel.popularNetworks)
-              _seerrFilterItem(
-                id: n.id.toString(),
-                name: n.name,
-                imagePath: n.logoPath ?? '',
-                type: 'Network',
-                mediaType: 'tv',
-                filterType: 'network',
-              ),
-          ]),
+          _seerrRow(
+            rowId,
+            title,
+            applyExternalRowSort(
+              items,
+              _prefs.get(UserPreferences.seerrRowsSortBy),
+              _prefs.get(UserPreferences.seerrRowsSortOrder),
+            ),
+          ),
         ];
       } else if (type == SeerrRowType.studios) {
+        final items = [
+          for (final s in SeerrDiscoverViewModel.popularStudios)
+            _seerrFilterItem(
+              id: s.id.toString(),
+              name: s.name,
+              imagePath: s.logoPath ?? '',
+              type: 'Studio',
+              mediaType: 'movie',
+              filterType: 'studio',
+            ),
+        ];
         return [
-          _seerrRow(rowId, title, [
-            for (final s in SeerrDiscoverViewModel.popularStudios)
-              _seerrFilterItem(
-                id: s.id.toString(),
-                name: s.name,
-                imagePath: s.logoPath ?? '',
-                type: 'Studio',
-                mediaType: 'movie',
-                filterType: 'studio',
-              ),
-          ]),
+          _seerrRow(
+            rowId,
+            title,
+            applyExternalRowSort(
+              items,
+              _prefs.get(UserPreferences.seerrRowsSortBy),
+              _prefs.get(UserPreferences.seerrRowsSortOrder),
+            ),
+          ),
         ];
       } else if (type == SeerrRowType.recentRequests) {
         final user = await repo.getCurrentUser();
@@ -2734,7 +2774,11 @@ class HomeViewModel extends ChangeNotifier {
         }
       }
 
-      final items = _seerrAggregatedItems(rawItems, type, blockNsfw);
+      final items = applyExternalRowSort(
+        _seerrAggregatedItems(rawItems, type, blockNsfw),
+        _prefs.get(UserPreferences.seerrRowsSortBy),
+        _prefs.get(UserPreferences.seerrRowsSortOrder),
+      );
       _seerrRowPages[rowId] = 1;
 
       // Paging keys off `hasMore`, so a row with further pages has to claim a
@@ -2812,14 +2856,28 @@ class HomeViewModel extends ChangeNotifier {
     SeerrRowType? type, {
     required bool exhausted,
   }) {
-    final existingIds = row.items.map((item) => item.id).toSet();
+    final existingKeys = row.items
+        .map((item) => '${item.rawData['SeerrMediaType'] ?? ''}:${item.id}')
+        .toSet();
+    final newItems = _seerrAggregatedItems(
+      rawItems,
+      type,
+      GetIt.instance<SeerrPreferences>().blockNsfw,
+    ).where(
+      (item) => !existingKeys.contains(
+        '${item.rawData['SeerrMediaType'] ?? ''}:${item.id}',
+      ),
+    ).toList();
+
+    // Only the new page is sorted. Sorting the whole row would move cards the
+    // viewer has already scrolled past.
     final items = [
       ...row.items,
-      ..._seerrAggregatedItems(
-        rawItems,
-        type,
-        GetIt.instance<SeerrPreferences>().blockNsfw,
-      ).where((item) => !existingIds.contains(item.id)),
+      ...applyExternalRowSort(
+        newItems,
+        _prefs.get(UserPreferences.seerrRowsSortBy),
+        _prefs.get(UserPreferences.seerrRowsSortOrder),
+      ),
     ];
 
     _replaceRowById(
@@ -2918,6 +2976,8 @@ class HomeViewModel extends ChangeNotifier {
               ),
               'SeerrMediaType': item.mediaType,
               'SeerrStatus': item.mediaInfo?.status,
+              'CommunityRating': item.voteAverage,
+              'Popularity': item.popularity,
             },
           ),
         )
@@ -3074,7 +3134,7 @@ class HomeViewModel extends ChangeNotifier {
           genreIds: item.genreIds,
           voteAverage: details.voteAverage ?? item.voteAverage,
           voteCount: item.voteCount,
-          popularity: item.popularity,
+          popularity: details.popularity ?? item.popularity,
           adult: item.adult,
           mediaInfo: item.mediaInfo,
           character: item.character,
@@ -3099,7 +3159,7 @@ class HomeViewModel extends ChangeNotifier {
         genreIds: item.genreIds,
         voteAverage: details.voteAverage ?? item.voteAverage,
         voteCount: item.voteCount,
-        popularity: item.popularity,
+        popularity: details.popularity ?? item.popularity,
         adult: item.adult,
         mediaInfo: item.mediaInfo,
         character: item.character,
@@ -3111,6 +3171,53 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  /// [items] in the order an external row's sort settings ask for. Ties go to
+  /// the name, since a release date is often only a year and Dart's sort
+  /// isn't stable.
+  @visibleForTesting
+  static List<AggregatedItem> applyExternalRowSort(
+    List<AggregatedItem> items,
+    ExternalRowSortBy sortBy,
+    SortDirection sortOrder,
+  ) {
+    if (sortBy == ExternalRowSortBy.none || items.isEmpty) return items;
+    final sorted = List<AggregatedItem>.from(items);
+    if (sortBy == ExternalRowSortBy.shuffle) {
+      sorted.shuffle();
+      return sorted;
+    }
+    sorted.sort((a, b) {
+      int cmp = 0;
+      switch (sortBy) {
+        case ExternalRowSortBy.name:
+          cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          break;
+        case ExternalRowSortBy.releaseDate:
+          final ay = a.productionYear ?? 0;
+          final by = b.productionYear ?? 0;
+          cmp = ay.compareTo(by);
+          break;
+        case ExternalRowSortBy.rating:
+          final ar = a.communityRating ?? 0.0;
+          final br = b.communityRating ?? 0.0;
+          cmp = ar.compareTo(br);
+          break;
+        case ExternalRowSortBy.popularity:
+          final ap = (a.rawData['Popularity'] as num?)?.toDouble() ?? 0.0;
+          final bp = (b.rawData['Popularity'] as num?)?.toDouble() ?? 0.0;
+          cmp = ap.compareTo(bp);
+          break;
+        case ExternalRowSortBy.none:
+        case ExternalRowSortBy.shuffle:
+          break;
+      }
+      if (cmp == 0) {
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      }
+      return sortOrder == SortDirection.ascending ? cmp : -cmp;
+    });
+    return sorted;
+  }
 
   Future<List<HomeRow>> _loadImdbRow(
     HomeSectionType sectionType,
@@ -3147,7 +3254,11 @@ class HomeViewModel extends ChangeNotifier {
         return AggregatedItem(
           id: itemId,
           serverId: 'seerr',
-          rawData: item.cardData,
+          rawData: {
+            ...item.cardData,
+            'CommunityRating': item.rating,
+            'Popularity': item.popularity,
+          },
         );
       }).toList();
 
@@ -3156,7 +3267,11 @@ class HomeViewModel extends ChangeNotifier {
           id: rowId,
           title: title,
           rowType: HomeRowType.pluginDynamic,
-          items: withoutUnratedOrBlockedItems(aggregatedItems),
+          items: applyExternalRowSort(
+            withoutUnratedOrBlockedItems(aggregatedItems),
+            _prefs.get(UserPreferences.imdbRowsSortBy),
+            _prefs.get(UserPreferences.imdbRowsSortOrder),
+          ),
         )
       ];
     } catch (e) {
@@ -3200,7 +3315,11 @@ class HomeViewModel extends ChangeNotifier {
         return AggregatedItem(
           id: itemId,
           serverId: 'seerr',
-          rawData: item.cardData,
+          rawData: {
+            ...item.cardData,
+            'CommunityRating': item.rating,
+            'Popularity': item.popularity,
+          },
         );
       }).toList();
 
@@ -3209,7 +3328,11 @@ class HomeViewModel extends ChangeNotifier {
           id: rowId,
           title: title,
           rowType: HomeRowType.pluginDynamic,
-          items: withoutUnratedOrBlockedItems(aggregatedItems),
+          items: applyExternalRowSort(
+            withoutUnratedOrBlockedItems(aggregatedItems),
+            _prefs.get(UserPreferences.tmdbRowsSortBy),
+            _prefs.get(UserPreferences.tmdbRowsSortOrder),
+          ),
         )
       ];
     } catch (e) {

@@ -21634,6 +21634,102 @@ abstract class AppLocalizations {
   /// **'Sort Audio rows in ascending or descending order.'**
   String get audioRowsSortOrderDescription;
 
+  /// No description provided for @sorting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorting'**
+  String get sorting;
+
+  /// No description provided for @imdbRowsSorting.
+  ///
+  /// In en, this message translates to:
+  /// **'IMDb Row Sorting'**
+  String get imdbRowsSorting;
+
+  /// No description provided for @imdbRowsSortingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort IMDb rows by name, release date, rating, and more.'**
+  String get imdbRowsSortingDescription;
+
+  /// No description provided for @imdbRowsSortOrderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort IMDb rows in ascending or descending order.'**
+  String get imdbRowsSortOrderDescription;
+
+  /// No description provided for @tmdbRowsSorting.
+  ///
+  /// In en, this message translates to:
+  /// **'TMDB Row Sorting'**
+  String get tmdbRowsSorting;
+
+  /// No description provided for @tmdbRowsSortingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort TMDB rows by name, release date, rating, and more.'**
+  String get tmdbRowsSortingDescription;
+
+  /// No description provided for @tmdbRowsSortOrderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort TMDB rows in ascending or descending order.'**
+  String get tmdbRowsSortOrderDescription;
+
+  /// No description provided for @seerrRowsSorting.
+  ///
+  /// In en, this message translates to:
+  /// **'Seerr Row Sorting'**
+  String get seerrRowsSorting;
+
+  /// No description provided for @seerrRowsSortingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort Seerr rows by name, release date, rating, and more.'**
+  String get seerrRowsSortingDescription;
+
+  /// No description provided for @seerrRowsSortOrderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort Seerr rows in ascending or descending order.'**
+  String get seerrRowsSortOrderDescription;
+
+  /// No description provided for @externalRowSortDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (List Order)'**
+  String get externalRowSortDefault;
+
+  /// No description provided for @externalRowSortName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get externalRowSortName;
+
+  /// No description provided for @externalRowSortReleaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Release Date'**
+  String get externalRowSortReleaseDate;
+
+  /// No description provided for @externalRowSortRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get externalRowSortRating;
+
+  /// No description provided for @externalRowSortPopularity.
+  ///
+  /// In en, this message translates to:
+  /// **'Popularity'**
+  String get externalRowSortPopularity;
+
+  /// No description provided for @externalRowSortShuffle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get externalRowSortShuffle;
+
   /// No description provided for @audioPlaylists.
   ///
   /// In en, this message translates to:
