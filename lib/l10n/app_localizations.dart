@@ -26759,6 +26759,18 @@ abstract class AppLocalizations {
   /// **'Home Screen Backdrop'**
   String get homeScreenBackdrop;
 
+  /// Home Screen Backdrop option that fills the whole screen with the focused item's backdrop
+  ///
+  /// In en, this message translates to:
+  /// **'Full Screen'**
+  String get homeScreenBackdropFullScreen;
+
+  /// Home Screen Backdrop option that shows the focused item's backdrop in the top right corner, fading into the background like the Google TV home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Corner'**
+  String get homeScreenBackdropCorner;
+
   /// Setting to show or hide the backdrop image behind the item details screen
   ///
   /// In en, this message translates to:

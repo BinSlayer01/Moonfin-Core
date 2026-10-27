@@ -128,6 +128,13 @@ class UserPreferences extends ChangeNotifier {
   static const mediaPreviewMedia = 'media';
   static const mediaPreviewTrailer = 'trailer';
 
+  // How the home screen shows the focused item's backdrop. homeBackdropEnabled
+  // says whether it shows one, which other apps also read, and
+  // homeBackdropStyle says how.
+  static const homeBackdropOff = 'off';
+  static const homeBackdropFullScreen = 'fullScreen';
+  static const homeBackdropCorner = 'corner';
+
   final PreferenceStore _store;
 
   UserPreferences(this._store) {
@@ -681,6 +688,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_enable_series_thumbnails',
     'pref_media_type_badge_behavior',
     'pref_show_home_backdrop',
+    'pref_home_backdrop_style',
     'pref_show_details_backdrop',
     'detailsBackgroundBlurAmount',
     'browsingBackgroundBlurAmount',
@@ -1267,6 +1275,28 @@ class UserPreferences extends ChangeNotifier {
     key: 'pref_show_home_backdrop',
     defaultValue: true,
   );
+
+  static final homeBackdropStyle = Preference(
+    key: 'pref_home_backdrop_style',
+    defaultValue: homeBackdropFullScreen,
+  );
+
+  /// How the home screen draws the backdrop, off when the switch is off.
+  String resolveHomeBackdropStyle() {
+    if (!get(homeBackdropEnabled)) return homeBackdropOff;
+    return get(homeBackdropStyle) == homeBackdropCorner
+        ? homeBackdropCorner
+        : homeBackdropFullScreen;
+  }
+
+  /// Brings the stored style in line with the switch, so the picker shows what
+  /// the home screen draws. A sync can flip the switch on its own.
+  Future<void> reconcileHomeBackdropStyle() async {
+    final resolved = resolveHomeBackdropStyle();
+    if (get(homeBackdropStyle) != resolved) {
+      await set(homeBackdropStyle, resolved);
+    }
+  }
 
   static final detailsBackdropEnabled = Preference(
     key: 'pref_show_details_backdrop',

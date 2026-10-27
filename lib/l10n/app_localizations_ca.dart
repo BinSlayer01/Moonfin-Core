@@ -15551,6 +15551,12 @@ class AppLocalizationsCa extends AppLocalizations {
   String get homeScreenBackdrop => 'Teló de fons de la pantalla d\'inici';
 
   @override
+  String get homeScreenBackdropFullScreen => 'Full Screen';
+
+  @override
+  String get homeScreenBackdropCorner => 'Corner';
+
+  @override
   String get detailsScreenBackdrop => 'Teló de fons de la pantalla de detalls';
 
   @override

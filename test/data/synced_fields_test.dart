@@ -112,6 +112,7 @@ void main() {
     'hideDetailsMediaDescription',
     'hideHomeMediaDescription',
     'homeBackdropEnabled',
+    'homeBackdropStyle',
     'homeImageTypeContinueWatching',
     'homeImageUseSeriesImage',
     'homeRowInfoOverlay',

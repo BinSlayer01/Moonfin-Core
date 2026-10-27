@@ -15306,6 +15306,12 @@ class AppLocalizationsAf extends AppLocalizations {
   String get homeScreenBackdrop => 'Home Screen Backdrop';
 
   @override
+  String get homeScreenBackdropFullScreen => 'Full Screen';
+
+  @override
+  String get homeScreenBackdropCorner => 'Corner';
+
+  @override
   String get detailsScreenBackdrop => 'Details Screen Backdrop';
 
   @override

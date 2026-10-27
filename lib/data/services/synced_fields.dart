@@ -198,6 +198,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('homeImageUseSeriesImage', UserPreferences.seriesThumbnailsEnabled, SyncCodec.boolean),
   SyncedField('mediaTypeBadgeBehavior', UserPreferences.mediaTypeBadgeBehavior, SyncCodec.enumName, enumValues: prefs.MediaTypeBadgeBehavior.values),
   SyncedField('homeBackdropEnabled', UserPreferences.homeBackdropEnabled, SyncCodec.boolean),
+  SyncedField('homeBackdropStyle', UserPreferences.homeBackdropStyle, SyncCodec.text),
   SyncedField('detailsBackdropEnabled', UserPreferences.detailsBackdropEnabled, SyncCodec.boolean),
   SyncedField('detailsScreenBlur', UserPreferences.detailsBackgroundBlurAmount, SyncCodec.intAsText),
   SyncedField('browsingBlur', UserPreferences.browsingBackgroundBlurAmount, SyncCodec.intAsText),

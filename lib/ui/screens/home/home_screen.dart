@@ -530,7 +530,7 @@ class _HomeShellState extends State<_HomeShell>
 
   @override
   Widget build(BuildContext context) {
-    final backdropEnabled = _userPrefs.get(UserPreferences.homeBackdropEnabled);
+    final backdropStyle = _userPrefs.resolveHomeBackdropStyle();
     final blurAmount = _userPrefs
         .get(UserPreferences.browsingBackgroundBlurAmount)
         .toDouble();
@@ -560,7 +560,7 @@ class _HomeShellState extends State<_HomeShell>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                if (backdropEnabled)
+                if (backdropStyle != UserPreferences.homeBackdropOff)
                   ValueListenableBuilder<String?>(
                     valueListenable: _backdropUrlNotifier,
                     builder: (context, url, _) {
@@ -568,6 +568,9 @@ class _HomeShellState extends State<_HomeShell>
                         url: url,
                         blurAmount: blurAmount,
                         useMakdBackdropFx: useMakdBackdropFx,
+                        inCorner:
+                            backdropStyle == UserPreferences.homeBackdropCorner &&
+                            !PlatformDetection.useMobileUi,
                       );
                     },
                   ),
@@ -648,52 +651,97 @@ class _Backdrop extends StatelessWidget {
   final double blurAmount;
   final bool useMakdBackdropFx;
 
+  /// Draws it in the top right corner, fading into the background toward the
+  /// left and the bottom, the way the Google TV home screen does.
+  final bool inCorner;
+
   const _Backdrop({
     this.url,
     required this.blurAmount,
     this.useMakdBackdropFx = false,
+    this.inCorner = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: FullscreenBackdropSwitcher(
-        imageUrl: url,
-        duration: BackgroundService.transitionDuration,
-        imageBuilder: (imageUrl) {
-          final image = _blurredImage(context, imageUrl, blurAmount);
-          if (!useMakdBackdropFx) {
-            return image;
-          }
+    final switcher = FullscreenBackdropSwitcher(
+      imageUrl: url,
+      duration: BackgroundService.transitionDuration,
+      imageBuilder: (imageUrl) {
+        final image = _blurredImage(context, imageUrl, blurAmount);
+        if (!useMakdBackdropFx) {
+          return image;
+        }
 
-          return ClipRect(
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey('makd_home_backdrop_$imageUrl'),
-              tween: Tween(begin: 1.0, end: 1.08),
-              duration: const Duration(seconds: 10),
-              curve: Curves.easeOut,
-              builder: (context, scale, child) {
-                return Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.center,
-                  child: child,
-                );
-              },
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  image,
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColorScheme.scrim.withValues(alpha: 0.26),
-                    ),
-                    child: const SizedBox.expand(),
+        return ClipRect(
+          child: TweenAnimationBuilder<double>(
+            key: ValueKey('makd_home_backdrop_$imageUrl'),
+            tween: Tween(begin: 1.0, end: 1.08),
+            duration: const Duration(seconds: 10),
+            curve: Curves.easeOut,
+            builder: (context, scale, child) {
+              return Transform.scale(
+                scale: scale,
+                alignment: Alignment.center,
+                child: child,
+              );
+            },
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                image,
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColorScheme.scrim.withValues(alpha: 0.26),
                   ),
-                ],
+                  child: const SizedBox.expand(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    return RepaintBoundary(child: inCorner ? _corner(switcher) : switcher);
+  }
+
+  Widget _corner(Widget backdrop) {
+    final fade = _homeBackground;
+    // Eased stops, so the image melts into the background rather than ending
+    // on a visible line.
+    LinearGradient fadeFrom(Alignment start, Alignment end) => LinearGradient(
+      begin: start,
+      end: end,
+      colors: [
+        fade,
+        fade.withValues(alpha: 0.85),
+        fade.withValues(alpha: 0.5),
+        fade.withValues(alpha: 0.15),
+        fade.withValues(alpha: 0),
+      ],
+      stops: const [0, 0.12, 0.3, 0.48, 0.6],
+    );
+    return Align(
+      alignment: Alignment.topRight,
+      child: FractionallySizedBox(
+        widthFactor: 0.7,
+        heightFactor: 0.75,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            backdrop,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: fadeFrom(Alignment.centerLeft, Alignment.centerRight),
               ),
             ),
-          );
-        },
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: fadeFrom(Alignment.bottomCenter, Alignment.topCenter),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
