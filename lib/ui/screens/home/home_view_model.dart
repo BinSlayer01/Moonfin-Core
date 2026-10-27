@@ -2570,7 +2570,7 @@ class HomeViewModel extends ChangeNotifier {
       if (slider == null || !slider.isSupported) return const [];
 
       final page = await repo.getSliderPage(slider);
-      final items = _applyExternalRowSort(
+      final items = applyExternalRowSort(
         _seerrAggregatedItems(
           page.results,
           null,
@@ -2653,7 +2653,7 @@ class HomeViewModel extends ChangeNotifier {
           _seerrRow(
             rowId,
             title,
-            _applyExternalRowSort(
+            applyExternalRowSort(
               items,
               _prefs.get(UserPreferences.seerrRowsSortBy),
               _prefs.get(UserPreferences.seerrRowsSortOrder),
@@ -2677,7 +2677,7 @@ class HomeViewModel extends ChangeNotifier {
           _seerrRow(
             rowId,
             title,
-            _applyExternalRowSort(
+            applyExternalRowSort(
               items,
               _prefs.get(UserPreferences.seerrRowsSortBy),
               _prefs.get(UserPreferences.seerrRowsSortOrder),
@@ -2700,7 +2700,7 @@ class HomeViewModel extends ChangeNotifier {
           _seerrRow(
             rowId,
             title,
-            _applyExternalRowSort(
+            applyExternalRowSort(
               items,
               _prefs.get(UserPreferences.seerrRowsSortBy),
               _prefs.get(UserPreferences.seerrRowsSortOrder),
@@ -2723,7 +2723,7 @@ class HomeViewModel extends ChangeNotifier {
           _seerrRow(
             rowId,
             title,
-            _applyExternalRowSort(
+            applyExternalRowSort(
               items,
               _prefs.get(UserPreferences.seerrRowsSortBy),
               _prefs.get(UserPreferences.seerrRowsSortOrder),
@@ -2774,7 +2774,7 @@ class HomeViewModel extends ChangeNotifier {
         }
       }
 
-      final items = _applyExternalRowSort(
+      final items = applyExternalRowSort(
         _seerrAggregatedItems(rawItems, type, blockNsfw),
         _prefs.get(UserPreferences.seerrRowsSortBy),
         _prefs.get(UserPreferences.seerrRowsSortOrder),
@@ -2869,22 +2869,16 @@ class HomeViewModel extends ChangeNotifier {
       ),
     ).toList();
 
-    final sortBy = _prefs.get(UserPreferences.seerrRowsSortBy);
-    final sortOrder = _prefs.get(UserPreferences.seerrRowsSortOrder);
-
-    final List<AggregatedItem> items;
-    if (sortBy == ExternalRowSortBy.shuffle) {
-      items = [
-        ...row.items,
-        ..._applyExternalRowSort(newItems, sortBy, sortOrder),
-      ];
-    } else {
-      items = _applyExternalRowSort(
-        [...row.items, ...newItems],
-        sortBy,
-        sortOrder,
-      );
-    }
+    // Only the new page is sorted. Sorting the whole row would move cards the
+    // viewer has already scrolled past.
+    final items = [
+      ...row.items,
+      ...applyExternalRowSort(
+        newItems,
+        _prefs.get(UserPreferences.seerrRowsSortBy),
+        _prefs.get(UserPreferences.seerrRowsSortOrder),
+      ),
+    ];
 
     _replaceRowById(
       row.copyWith(
@@ -3177,8 +3171,11 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-
-  List<AggregatedItem> _applyExternalRowSort(
+  /// [items] in the order an external row's sort settings ask for. Ties go to
+  /// the name, since a release date is often only a year and Dart's sort
+  /// isn't stable.
+  @visibleForTesting
+  static List<AggregatedItem> applyExternalRowSort(
     List<AggregatedItem> items,
     ExternalRowSortBy sortBy,
     SortDirection sortOrder,
@@ -3201,8 +3198,8 @@ class HomeViewModel extends ChangeNotifier {
           cmp = ay.compareTo(by);
           break;
         case ExternalRowSortBy.rating:
-          final ar = a.communityRating ?? (a.rawData['CommunityRating'] as num?)?.toDouble() ?? 0.0;
-          final br = b.communityRating ?? (b.rawData['CommunityRating'] as num?)?.toDouble() ?? 0.0;
+          final ar = a.communityRating ?? 0.0;
+          final br = b.communityRating ?? 0.0;
           cmp = ar.compareTo(br);
           break;
         case ExternalRowSortBy.popularity:
@@ -3213,6 +3210,9 @@ class HomeViewModel extends ChangeNotifier {
         case ExternalRowSortBy.none:
         case ExternalRowSortBy.shuffle:
           break;
+      }
+      if (cmp == 0) {
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
       }
       return sortOrder == SortDirection.ascending ? cmp : -cmp;
     });
@@ -3267,7 +3267,7 @@ class HomeViewModel extends ChangeNotifier {
           id: rowId,
           title: title,
           rowType: HomeRowType.pluginDynamic,
-          items: _applyExternalRowSort(
+          items: applyExternalRowSort(
             withoutUnratedOrBlockedItems(aggregatedItems),
             _prefs.get(UserPreferences.imdbRowsSortBy),
             _prefs.get(UserPreferences.imdbRowsSortOrder),
@@ -3328,7 +3328,7 @@ class HomeViewModel extends ChangeNotifier {
           id: rowId,
           title: title,
           rowType: HomeRowType.pluginDynamic,
-          items: _applyExternalRowSort(
+          items: applyExternalRowSort(
             withoutUnratedOrBlockedItems(aggregatedItems),
             _prefs.get(UserPreferences.tmdbRowsSortBy),
             _prefs.get(UserPreferences.tmdbRowsSortOrder),
