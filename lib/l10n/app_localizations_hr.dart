@@ -15526,6 +15526,15 @@ class AppLocalizationsHr extends AppLocalizations {
   String get detailsScreenBackdrop => 'Details Screen Backdrop';
 
   @override
+  String get detailsBackdropSize => 'Backdrop Size';
+
+  @override
+  String get detailsBackdropFullScreen => 'Full Screen';
+
+  @override
+  String get detailsBackdropFit => 'Fit';
+
+  @override
   String get libraryBackdrops => 'Library Backdrops';
 
   @override

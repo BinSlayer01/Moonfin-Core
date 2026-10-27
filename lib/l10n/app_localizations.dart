@@ -26777,6 +26777,24 @@ abstract class AppLocalizations {
   /// **'Details Screen Backdrop'**
   String get detailsScreenBackdrop;
 
+  /// Setting on phones for how big the backdrop image behind the item details screen is drawn
+  ///
+  /// In en, this message translates to:
+  /// **'Backdrop Size'**
+  String get detailsBackdropSize;
+
+  /// Backdrop Size option that zooms the backdrop to fill the whole details screen
+  ///
+  /// In en, this message translates to:
+  /// **'Full Screen'**
+  String get detailsBackdropFullScreen;
+
+  /// Backdrop Size option that shows the whole backdrop across the top of the details screen, fading into the page below it
+  ///
+  /// In en, this message translates to:
+  /// **'Fit'**
+  String get detailsBackdropFit;
+
   /// Setting to show or hide backdrop images while browsing library pages
   ///
   /// In en, this message translates to:

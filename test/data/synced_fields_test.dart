@@ -57,6 +57,7 @@ void main() {
     'detailTrailersExternal',
     'detailUseSeriesThumbnails',
     'detailsBackdropEnabled',
+    'detailsBackdropSize',
     'detailsScreenBlur',
     'diagnosticLoggingEnabled',
     'displayAudioAlbumArtists',

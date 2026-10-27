@@ -200,6 +200,7 @@ final List<SyncedField> syncedFields = <SyncedField>[
   SyncedField('homeBackdropEnabled', UserPreferences.homeBackdropEnabled, SyncCodec.boolean),
   SyncedField('homeBackdropStyle', UserPreferences.homeBackdropStyle, SyncCodec.text),
   SyncedField('detailsBackdropEnabled', UserPreferences.detailsBackdropEnabled, SyncCodec.boolean),
+  SyncedField('detailsBackdropSize', UserPreferences.detailsBackdropSize, SyncCodec.text),
   SyncedField('detailsScreenBlur', UserPreferences.detailsBackgroundBlurAmount, SyncCodec.intAsText),
   SyncedField('browsingBlur', UserPreferences.browsingBackgroundBlurAmount, SyncCodec.intAsText),
   SyncedField('mdblistEnabled', UserPreferences.enableAdditionalRatings, SyncCodec.boolean),

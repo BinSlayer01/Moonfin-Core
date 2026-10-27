@@ -14056,6 +14056,18 @@
   "@detailsScreenBackdrop": {
     "description": "Setting to show or hide the backdrop image behind the item details screen"
   },
+  "detailsBackdropSize": "Backdrop Size",
+  "@detailsBackdropSize": {
+    "description": "Setting on phones for how big the backdrop image behind the item details screen is drawn"
+  },
+  "detailsBackdropFullScreen": "Full Screen",
+  "@detailsBackdropFullScreen": {
+    "description": "Backdrop Size option that zooms the backdrop to fill the whole details screen"
+  },
+  "detailsBackdropFit": "Fit",
+  "@detailsBackdropFit": {
+    "description": "Backdrop Size option that shows the whole backdrop across the top of the details screen, fading into the page below it"
+  },
   "libraryBackdrops": "Library Backdrops",
   "@libraryBackdrops": {
     "description": "Setting to show or hide backdrop images while browsing library pages"

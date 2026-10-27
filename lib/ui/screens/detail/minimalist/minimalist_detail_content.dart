@@ -180,12 +180,15 @@ class _MinimalistDetailContentState extends State<MinimalistDetailContent> {
             children: [
               ColoredBox(color: AppColorScheme.background),
               if (url != null && url.isNotEmpty)
-                FullscreenBackdropSwitcher(
-                  imageUrl: url,
-                  duration: const Duration(milliseconds: 350),
-                  alignment: landscape
-                      ? Alignment.centerRight
-                      : Alignment.topCenter,
+                DetailBackdropFit(
+                  prefs: widget.prefs,
+                  child: FullscreenBackdropSwitcher(
+                    imageUrl: url,
+                    duration: const Duration(milliseconds: 350),
+                    alignment: landscape
+                        ? Alignment.centerRight
+                        : Alignment.topCenter,
+                  ),
                 ),
               ColoredBox(color: AppColors.black.withValues(alpha: alpha)),
             ],

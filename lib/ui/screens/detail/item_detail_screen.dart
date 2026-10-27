@@ -1602,8 +1602,10 @@ class _DetailContentState extends State<_DetailContent> {
             if (backdropEnabled && !isReadableBook)
               ValueListenableBuilder<String?>(
                 valueListenable: widget.backdropUrl,
-                builder: (context, url, _) =>
-                    _Backdrop(url: url, blurAmount: blurAmount),
+                builder: (context, url, _) => DetailBackdropFit(
+                  prefs: widget.prefs,
+                  child: _Backdrop(url: url, blurAmount: blurAmount),
+                ),
               ),
             if (isReadableBook)
               const Positioned.fill(

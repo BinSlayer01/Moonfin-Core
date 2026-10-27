@@ -135,6 +135,11 @@ class UserPreferences extends ChangeNotifier {
   static const homeBackdropFullScreen = 'fullScreen';
   static const homeBackdropCorner = 'corner';
 
+  // How a phone sizes the details backdrop: zoomed to fill the screen, or the
+  // whole picture across the top.
+  static const detailsBackdropFullScreen = 'fullScreen';
+  static const detailsBackdropFit = 'fit';
+
   final PreferenceStore _store;
 
   UserPreferences(this._store) {
@@ -690,6 +695,7 @@ class UserPreferences extends ChangeNotifier {
     'pref_show_home_backdrop',
     'pref_home_backdrop_style',
     'pref_show_details_backdrop',
+    'pref_details_backdrop_size',
     'detailsBackgroundBlurAmount',
     'browsingBackgroundBlurAmount',
     'enableAdditionalRatings',
@@ -1301,6 +1307,11 @@ class UserPreferences extends ChangeNotifier {
   static final detailsBackdropEnabled = Preference(
     key: 'pref_show_details_backdrop',
     defaultValue: true,
+  );
+
+  static final detailsBackdropSize = Preference(
+    key: 'pref_details_backdrop_size',
+    defaultValue: detailsBackdropFullScreen,
   );
 
   /// Plays retro games through the native libretro backend instead of the

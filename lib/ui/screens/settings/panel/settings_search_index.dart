@@ -667,6 +667,12 @@ List<_SettingsSearchEntry> _buildSettingsSearchIndex({
       l10n.detailsScreenBackdrop,
       keywords: ['background images'],
     ),
+    if (PlatformDetection.useMobileUi)
+      details.leaf(
+        'pref_details_backdrop_size',
+        l10n.detailsBackdropSize,
+        keywords: ['fit', 'zoom', 'crop'],
+      ),
     details.leaf('detailsBackgroundBlurAmount', l10n.detailsBackgroundBlur),
     details.leaf(
       'pref_detail_expanded_tabs',
