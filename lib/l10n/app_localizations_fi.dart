@@ -13223,9 +13223,9 @@ class AppLocalizationsFi extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count odottaa sinua',
-      one: '1 odottaa sinua',
-      zero: 'Ei ketään odottamassa',
+      other: '$count waiting for you',
+      one: '1 waiting for you',
+      zero: 'Nothing waiting',
     );
     return '$_temp0';
   }
@@ -13583,7 +13583,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get analyticsTopAuthors => 'Huippukirjoittajat';
 
   @override
-  String get analyticsTopContributors => 'Parhaat Avustajat';
+  String get analyticsTopContributors => 'Parhaat kirjoittajat';
 
   @override
   String analyticsLibrariesCount(int count) {
@@ -15460,7 +15460,22 @@ class AppLocalizationsFi extends AppLocalizations {
   String get homeScreenBackdrop => 'Aloitusnäytön taustakuva';
 
   @override
+  String get homeScreenBackdropFullScreen => 'Full Screen';
+
+  @override
+  String get homeScreenBackdropCorner => 'Corner';
+
+  @override
   String get detailsScreenBackdrop => 'Tietonäytön taustakuva';
+
+  @override
+  String get detailsBackdropSize => 'Backdrop Size';
+
+  @override
+  String get detailsBackdropFullScreen => 'Full Screen';
+
+  @override
+  String get detailsBackdropFit => 'Fit';
 
   @override
   String get libraryBackdrops => 'Kirjaston taustakuvat';

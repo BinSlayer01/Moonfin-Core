@@ -14060,9 +14060,29 @@
   "@homeScreenBackdrop": {
     "description": "Setting to show or hide the backdrop image behind the home screen"
   },
+  "homeScreenBackdropFullScreen": "Full Screen",
+  "@homeScreenBackdropFullScreen": {
+    "description": "Home Screen Backdrop option that fills the whole screen with the focused item's backdrop"
+  },
+  "homeScreenBackdropCorner": "Corner",
+  "@homeScreenBackdropCorner": {
+    "description": "Home Screen Backdrop option that shows the focused item's backdrop in the top right corner, fading into the background like the Google TV home screen"
+  },
   "detailsScreenBackdrop": "Details Screen Backdrop",
   "@detailsScreenBackdrop": {
     "description": "Setting to show or hide the backdrop image behind the item details screen"
+  },
+  "detailsBackdropSize": "Backdrop Size",
+  "@detailsBackdropSize": {
+    "description": "Setting on phones for how big the backdrop image behind the item details screen is drawn"
+  },
+  "detailsBackdropFullScreen": "Full Screen",
+  "@detailsBackdropFullScreen": {
+    "description": "Backdrop Size option that zooms the backdrop to fill the whole details screen"
+  },
+  "detailsBackdropFit": "Fit",
+  "@detailsBackdropFit": {
+    "description": "Backdrop Size option that shows the whole backdrop across the top of the details screen, fading into the page below it"
   },
   "libraryBackdrops": "Library Backdrops",
   "@libraryBackdrops": {
